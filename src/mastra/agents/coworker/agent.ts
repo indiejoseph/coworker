@@ -7,6 +7,8 @@ import { getDynamicWorkspace } from "./workspace";
 import { getInstructions } from "./instructions";
 import { getModel } from "./model";
 
+const tokenLimiter =new TokenLimiterProcessor({ limit: 30_000, countMode: 'cumulative', strategy: 'truncate' }) // 30_000 align to observation threshold to avoid trimming before recall
+
 export const coworkerAgent = new Agent({
   id: AGENT_ID,
   name: "Coworker",
@@ -17,7 +19,7 @@ export const coworkerAgent = new Agent({
   workspace: getDynamicWorkspace,
   // Memory is provided by Harness via getDynamicMemory factory.
   // Non-Harness callers (scheduled tasks, WhatsApp) pass memory explicitly.
-  inputProcessors: [noOpSemanticRecall, new TokenLimiterProcessor({ limit: 30_000, countMode: 'cumulative', strategy: 'truncate' }),], // 30_000 align to observation threshold to avoid trimming before recall
+  inputProcessors: [noOpSemanticRecall, tokenLimiter],
   defaultOptions: async () => ({
     maxSteps: 100,
     toolsets: await agentConfig.getMcpToolsets(),
