@@ -1,4 +1,4 @@
-import { Harness } from '@mastra/core/harness';
+import { Harness, HarnessConfig } from '@mastra/core/harness';
 import { createWorkspaceTools } from '@mastra/core/workspace';
 import { coworkerAgent } from '../agents/coworker/agent';
 import { AGENT_ID, DEFAULT_MODEL } from '../config/agent-config';
@@ -41,7 +41,7 @@ export const sharedConfig = {
   },
   subagents,
   resolveModel,
-};
+} satisfies Omit<HarnessConfig<typeof stateSchema>, 'id'>;
 
 /** Create a channel-specific harness (same resourceId, isolated session state) */
 export function createChannelHarness(channelId: string) {

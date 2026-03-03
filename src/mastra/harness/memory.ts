@@ -8,9 +8,10 @@ import { workingMemorySchema } from '../memory';
 import { DB_URL } from '../db';
 import type { stateSchema } from './schema';
 
+
 const DEFAULT_OBS_THRESHOLD = 30_000;
 const DEFAULT_REF_THRESHOLD = 40_000;
-const DEFAULT_OM_MODEL = 'nvidia/moonshotai/kimi-k2.5';
+const DEFAULT_OM_MODEL = process.env.OM_MODEL || 'cloudflare/google/gemini-2.5-flash';
 
 let cachedMemory: Memory | null = null;
 let cachedMemoryKey: string | null = null;
