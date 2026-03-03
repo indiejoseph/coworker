@@ -1,9 +1,10 @@
 services:
   coworker:
-    image: ghcr.io/array-ventures/coworker:latest
-    pull_policy: always
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - '127.0.0.1:8080:8080'
+      - "127.0.0.1:8080:8080"
     environment:
       - DATA_PATH=/data
       - GOG_KEYRING_PASSWORD=${GOG_KEYRING_PASSWORD:-}
@@ -14,6 +15,11 @@ services:
       - GROQ_API_KEY=${GROQ_API_KEY:-}
       - NVIDIA_API_KEY=${NVIDIA_API_KEY:-}
       - KIMI_API_KEY=${KIMI_API_KEY:-}
+      - CF_ACCOUNT_ID=${CF_ACCOUNT_ID:-} # Cloudflare Account ID
+      - CF_AIG_TOKEN=${CF_AIG_TOKEN:-}
+      - CF_AI_GATEWAY_NAME=${CF_AI_GATEWAY_NAME:-} # Cloudflare AI Gateway name
+      - COWORKER_URL=${COWORKER_URL:-}
+      - COWORKER_API_TOKEN=${COWORKER_API_TOKEN:-}
     volumes:
       - data:/data
 

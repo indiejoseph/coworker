@@ -1,30 +1,28 @@
 {
   "name": "coworker",
   "version": "0.2.0",
-  "description": "Advanced Mastra AI coding agent with secure sandbox execution, comprehensive file management, and multi-language support for Python, JavaScript, and TypeScript development workflows",
-  "module": "index.ts",
-  "type": "module",
   "private": true,
-  "author": "Array Ventures",
-  "license": "UNLICENSED",
+  "description": "Advanced Mastra AI coding agent with secure sandbox execution, comprehensive file management, and multi-language support for Python, JavaScript, and TypeScript development workflows",
   "repository": {
     "type": "git",
     "url": "https://github.com/Array-Ventures/coworker.git"
   },
+  "license": "UNLICENSED",
+  "author": "Array Ventures",
+  "type": "module",
+  "module": "index.ts",
   "scripts": {
+    "build": "mastra build",
+    "build:app": "cd app && bun run build",
     "predev": "lsof -ti :4111 | xargs kill -9 2>/dev/null || true;",
     "dev": "mastra dev",
     "dev:app": "cd app && bun run dev",
-    "build": "mastra build",
-    "build:app": "cd app && bun run build",
     "start": "mastra start",
     "test": "bun test",
     "test:watch": "bun test --watch"
   },
-  "engines": {
-    "node": ">=22.13.0"
-  },
   "dependencies": {
+    "@ai-sdk/google": "3.0.36",
     "@mastra/ai-sdk": "^1.0.5",
     "@mastra/core": "^1.6.0",
     "@mastra/e2b": "^0.0.3",
@@ -52,6 +50,9 @@
     "@types/qrcode": "^1.5.6",
     "mastra": "latest",
     "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22.13.0"
   },
   "overrides": {
     "hono": "$hono"

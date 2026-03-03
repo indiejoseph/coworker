@@ -16,12 +16,16 @@ import { coworkerMcpServer } from './mcp/server';
 import { harnessPool } from './harness/pool';
 import { createAuthMiddleware } from './middleware/auth';
 import { createRoutes } from './routes';
+import { CloudflareGateway } from './gateways/cloudflare-gateway';
 const whatsAppManager = new WhatsAppManager();
 
 export const mastra = new Mastra({
   agents: { coworkerAgent },
   memory: { coworker: coworkerMemory },
   mcpServers: { coworkerMcpServer },
+  gateways: {
+    cloudflare: new CloudflareGateway(),
+  },
   server: {
     bodySizeLimit: 52_428_800, // 50 MB — needed for uploading large files (PPT, DOCX, etc.)
     middleware: [
