@@ -7,7 +7,7 @@ import { getDynamicWorkspace } from "./workspace";
 import { getInstructions } from "./instructions";
 import { getModel } from "./model";
 
-const tokenLimiter =new TokenLimiterProcessor({ limit: 30_000, countMode: 'cumulative', strategy: 'truncate' }) // 30_000 align to observation threshold to avoid trimming before recall
+const tokenLimiter =new TokenLimiterProcessor({ limit: 10_000, countMode: 'cumulative', strategy: 'truncate' }) // 10_000 align to observation threshold to avoid trimming before recall
 
 export const coworkerAgent = new Agent({
   id: AGENT_ID,

@@ -5,6 +5,10 @@ import { fastembed } from "@mastra/fastembed";
 import { z } from "zod";
 import { storage, DB_URL } from "./db";
 
+const DEFAULT_OBS_THRESHOLD = 10_000;
+const DEFAULT_REF_THRESHOLD = 20_000;
+const DEFAULT_OM_MODEL = process.env.OM_MODEL || 'cloudflare/google/gemini-2.5-flash';
+
 // ── Working Memory Schema ──
 // Schema mode uses merge semantics — the agent only sends fields it wants to update.
 // Seeded on first startup via seedWorkingMemory() in index.ts.
@@ -89,13 +93,13 @@ export const coworkerMemory = new Memory({
       schema: workingMemorySchema,
     },
     observationalMemory: {
-      model: "nvidia/moonshotai/kimi-k2.5",
+      model: DEFAULT_OM_MODEL,
       scope: "resource",
       observation: {
-        messageTokens: 30_000,
+        messageTokens: DEFAULT_OBS_THRESHOLD,
       },
       reflection: {
-        observationTokens: 40_000,
+        observationTokens: DEFAULT_REF_THRESHOLD,
       },
     },
   },
