@@ -21,6 +21,11 @@ export function createAuthMiddleware() {
     const playgroundToken = c.req.header('X-Playground-Access');
     if (playgroundToken === token) return next();
 
+    // Allow localhost access without token
+    const host = c.req.header('host') || '';
+    const isLocalhost = host.includes('localhost');
+    if (isLocalhost) return next();
+
     return bearerAuth({ token })(c, next);
   });
 }
