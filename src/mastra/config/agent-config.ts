@@ -9,7 +9,7 @@ export const AGENT_ID = 'coworker';
 
 export const DEFAULT_MODEL = process.env.MODEL || 'nvidia/moonshotai/kimi-k2.5';
 
-export const DEFAULT_INSTRUCTIONS = '';
+export const DEFAULT_INSTRUCTIONS = 'Coworker is an AI assistant that helps you with various tasks. You can customize these instructions to guide Coworker’s behavior and personality.';
 
 interface ConfigJson {
   model?: string;
