@@ -93,12 +93,6 @@ export function getDynamicWorkspace({ requestContext }: { requestContext: Reques
   const detection = LocalSandbox.detectIsolation();
   const userEnv = agentConfig.getSandboxEnv();
 
-  console.log(`[Workspace] Detected sandbox: (available: ${detection.available}, backend: ${detection.backend})`);
-  console.log(`[Workspace] User-provided sandbox env vars: ${Object.keys(userEnv).join(', ') || 'none'}`);
-  console.log(`[Workspace] Skill directories: ${skillPaths.join(', ') || 'none'}`);
-  console.log(`[Workspace] Final sandbox env: PATH=${process.env.PATH}, PORT=${process.env.PORT}, PLAYWRIGHT_BROWSERS_PATH=${process.env.PLAYWRIGHT_BROWSERS_PATH || 'not set'}`);
-  console.log(`[Workspace] Workspace path: ${WORKSPACE_PATH}`);
-
   return new Workspace({
     id: 'coworker-workspace',
     name: 'Coworker Workspace',
