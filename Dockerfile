@@ -64,7 +64,6 @@ COPY src/mastra/skills /app/builtin-skills
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-ENV PATH="/usr/local/bin:/usr/bin:${PATH}"
 ENV NODE_ENV=production
 ENV PORT=8080
 ENV DATA_PATH=/data

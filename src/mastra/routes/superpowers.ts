@@ -32,11 +32,11 @@ export const superpowersRoutes = [
       const sandbox = createSandbox();
       try {
         await sandbox.start();
-        const result = await sandbox.executeCommand('bash', ['-c', check], { timeout: 15_000 });
+        const result = await sandbox.executeCommand?.('bash', ['-c', check], { timeout: 15_000 });
         return c.json({
-          ok: result.exitCode === 0,
-          output: result.stdout.trim(),
-          exitCode: result.exitCode,
+          ok: result?.exitCode === 0,
+          output: result?.stdout.trim(),
+          exitCode: result?.exitCode,
         });
       } catch (err: any) {
         return c.json({ ok: false, error: err.message });
@@ -56,11 +56,11 @@ export const superpowersRoutes = [
       const sandbox = createSandbox();
       try {
         await sandbox.start();
-        const result = await sandbox.executeCommand('bash', ['-c', install], { timeout: 300_000 });
+        const result = await sandbox.executeCommand?.('bash', ['-c', install], { timeout: 300_000 });
         return c.json({
-          ok: result.exitCode === 0,
-          output: (result.stdout + '\n' + result.stderr).trim(),
-          exitCode: result.exitCode,
+          ok: result?.exitCode === 0,
+          output: result ? (result.stdout + '\n' + result.stderr).trim() : '',
+          exitCode: result?.exitCode,
         });
       } catch (err: any) {
         return c.json({ ok: false, error: err.message });
