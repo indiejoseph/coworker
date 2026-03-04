@@ -106,9 +106,10 @@ export function getDynamicWorkspace({
 	return new Workspace({
 		id: "coworker-workspace",
 		name: "Coworker Workspace",
-		mounts: {
-			"/data/workspace": new LocalFilesystem({ basePath: WORKSPACE_PATH }),
-		},
+		filesystem: new LocalFilesystem({
+      basePath: WORKSPACE_PATH,
+      allowedPaths: skillPaths,
+    }),
 		sandbox: new LocalSandbox({
 			workingDirectory: WORKSPACE_PATH,
 			env: {
