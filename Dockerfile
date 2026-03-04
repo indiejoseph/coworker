@@ -1,22 +1,22 @@
-FROM oven/bun:1-debian AS builder
+FROM node:22-debian AS builder
 
 WORKDIR /app
 
 # Install build dependencies for native modules (fastembed)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  python3 make g++ nodejs npm && \
+  python3 make g++ && \
   rm -rf /var/lib/apt/lists/*
 
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY src ./src
 COPY tsconfig.json ./
 RUN npx mastra build --studio && \
-  cd .mastra/output && bun pm trust --all 2>/dev/null; bun install || true
+  cd .mastra/output && npm install || true
 
 # ── Production (Debian for glibc native module compatibility) ──
-FROM oven/bun:1-debian
+FROM node:22-debian
 
 WORKDIR /app
 
@@ -24,9 +24,6 @@ WORKDIR /app
 ARG GOG_VERSION=0.9.0
 RUN apt-get update && apt-get install -y --no-install-recommends \
   git curl jq ca-certificates gosu python3 python3-pip python3-venv && \
-  # Node.js 22 LTS via NodeSource
-  curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
-  apt-get install -y --no-install-recommends nodejs && \
   # Playwright system deps for Chromium (agent-browser install downloads binaries at runtime)
   npx playwright install-deps chromium && \
   # gh CLI via official apt repo
@@ -43,6 +40,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   "https://github.com/steipete/gogcli/releases/download/v${GOG_VERSION}/gogcli_${GOG_VERSION}_linux_${ARCH}.tar.gz" && \
   tar -xzf /tmp/gog.tar.gz -C /usr/local/bin gog && \
   chmod +x /usr/local/bin/gog && \
+  # Install nvm
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash && \
   # Cleanup
   apt-get autoremove -y && \
   rm -rf /var/lib/apt/lists/* /tmp/gog.tar.gz
@@ -72,4 +71,4 @@ ENV MASTRA_STUDIO_PATH=./studio
 EXPOSE 8080
 
 ENTRYPOINT ["entrypoint.sh"]
-CMD ["bun", "run", "index.mjs"]
+CMD ["node", "index.mjs"]
