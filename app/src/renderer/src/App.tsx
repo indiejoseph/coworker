@@ -90,8 +90,8 @@ export default function App() {
     // Extract base64 images for harness
     const images = files
       .filter((f) => f.mediaType.startsWith("image/"))
-      .map((f) => f.url.split(",")[1]) // Extract base64 from data URL
-      .filter(Boolean);
+      .map((f) => ({ data: f.url.split(",")[1], mimeType: f.mediaType }))
+      .filter((img) => img.data);
 
     useAppStore.setState({
       input: "",
@@ -113,8 +113,8 @@ export default function App() {
 
     const images = files
       .filter((f) => f.mediaType.startsWith("image/"))
-      .map((f) => f.url.split(",")[1])
-      .filter(Boolean);
+      .map((f) => ({ data: f.url.split(",")[1], mimeType: f.mediaType }))
+      .filter((img) => img.data);
 
     useAppStore.setState({ input: "", stagedFiles: [] });
 

@@ -603,7 +603,7 @@ export function useHarness() {
   // Action Methods (POST) — all include threadId
   // ---------------------------------------------------------------------------
 
-  const sendMessage = useCallback(async (content: string, images?: string[]) => {
+  const sendMessage = useCallback(async (content: string, images?: { data: string; mimeType: string }[]) => {
     const threadId = stateRef.current.currentThreadId
     if (!threadId) return
 

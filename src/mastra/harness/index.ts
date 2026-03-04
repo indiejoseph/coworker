@@ -1,17 +1,17 @@
-import { Harness, HarnessConfig } from '@mastra/core/harness';
-import { createWorkspaceTools } from '@mastra/core/workspace';
-import { coworkerAgent } from '../agents/coworker/agent';
-import { AGENT_ID, DEFAULT_MODEL } from '../config/agent-config';
-import { getDynamicWorkspace } from '../agents/coworker/workspace';
-import { subagents } from '../agents/subagents';
-import { resolveModel } from '../agents/coworker/model';
-import { stateSchema } from './schema';
-import { getToolCategory } from './permissions';
-import { getDynamicMemory } from './memory';
-import { getMcpToolsets } from '../mcp';
-import { viewImageTool } from './tools/view-image';
-import { scheduledTasksTool } from './tools/scheduled-tasks';
-import { storage } from '../db';
+import { Harness, type HarnessConfig } from "@mastra/core/harness";
+import { createWorkspaceTools } from "@mastra/core/workspace";
+import { coworkerAgent } from "../agents/coworker/agent";
+import { resolveModel } from "../agents/coworker/model";
+import { getDynamicWorkspace } from "../agents/coworker/workspace";
+import { subagents } from "../agents/subagents";
+import { AGENT_ID, DEFAULT_MODEL } from "../config/agent-config";
+import { storage } from "../db";
+import { getMcpToolsets } from "../mcp";
+import { getDynamicMemory } from "./memory";
+import { getToolCategory } from "./permissions";
+import { stateSchema } from "./schema";
+import { scheduledTasksTool } from "./tools/scheduled-tasks";
+import { viewImageTool } from "./tools/view-image";
 
 /** Concrete harness type used across the app (parameterized with our stateSchema) */
 export type CoworkerHarness = Harness<typeof stateSchema>;
@@ -20,30 +20,53 @@ export type CoworkerHarness = Harness<typeof stateSchema>;
 export const harnessStorage = storage;
 
 export const sharedConfig = {
-  resourceId: AGENT_ID,
-  storage: harnessStorage,
-  stateSchema,
-  initialState: {
-    yolo: true,
-  },
-  memory: getDynamicMemory(harnessStorage) as any, // Dynamic factory — Harness resolves at runtime
-  workspace: getDynamicWorkspace,
-  toolCategoryResolver: getToolCategory,
-  modes: [
-    { id: 'build' as const, name: 'Build', default: true as const, agent: coworkerAgent, defaultModelId: DEFAULT_MODEL },
-    { id: 'plan' as const, name: 'Plan', agent: coworkerAgent, defaultModelId: DEFAULT_MODEL },
-    { id: 'fast' as const, name: 'Fast', agent: coworkerAgent, defaultModelId: DEFAULT_MODEL },
-  ],
-  tools: async ({ requestContext }: { requestContext: any }) => {
-    const mcpTools = await getMcpToolsets();
-    const wsTools = createWorkspaceTools(getDynamicWorkspace({ requestContext }));
-    return { ...mcpTools, ...wsTools, view_image: viewImageTool, scheduled_tasks: scheduledTasksTool };
-  },
-  subagents,
-  resolveModel,
-} satisfies Omit<HarnessConfig<typeof stateSchema>, 'id'>;
+	resourceId: AGENT_ID,
+	storage: harnessStorage,
+	stateSchema,
+	initialState: {
+		yolo: true,
+	},
+	memory: getDynamicMemory(harnessStorage), // Dynamic factory — Harness resolves at runtime
+	workspace: getDynamicWorkspace,
+	toolCategoryResolver: getToolCategory,
+	modes: [
+		{
+			id: "build" as const,
+			name: "Build",
+			default: true as const,
+			agent: coworkerAgent,
+			defaultModelId: DEFAULT_MODEL,
+		},
+		{
+			id: "plan" as const,
+			name: "Plan",
+			agent: coworkerAgent,
+			defaultModelId: DEFAULT_MODEL,
+		},
+		{
+			id: "fast" as const,
+			name: "Fast",
+			agent: coworkerAgent,
+			defaultModelId: DEFAULT_MODEL,
+		},
+	],
+	tools: async ({ requestContext }: { requestContext: any }) => {
+		const mcpTools = await getMcpToolsets();
+		const wsTools = createWorkspaceTools(
+			getDynamicWorkspace({ requestContext }),
+		);
+		return {
+			...mcpTools,
+			...wsTools,
+			view_image: viewImageTool,
+			scheduled_tasks: scheduledTasksTool,
+		};
+	},
+	subagents,
+	resolveModel,
+} satisfies Omit<HarnessConfig<typeof stateSchema>, "id">;
 
 /** Create a channel-specific harness (same resourceId, isolated session state) */
 export function createChannelHarness(channelId: string) {
-  return new Harness({ id: `harness-${channelId}`, ...sharedConfig });
+	return new Harness({ id: `harness-${channelId}`, ...sharedConfig });
 }

@@ -13,3 +13,4 @@ app/out/
 .sandbox-profiles/
 src/whatsapp-auth
 .claude/
+tmp

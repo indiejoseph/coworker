@@ -7,7 +7,7 @@ import type { RequestContext } from "@mastra/core/request-context";
 import path from "path";
 import fs from "fs";
 import os from "os";
-import { WORKSPACE_PATH } from '../../config/paths';
+import { DATA_PATH, WORKSPACE_PATH } from '../../config/paths';
 import { agentConfig } from '../../config/agent-config';
 
 // Auto-create essential directories (Docker entrypoint does this too, but needed for local dev)
@@ -96,10 +96,9 @@ export function getDynamicWorkspace({ requestContext }: { requestContext: Reques
   return new Workspace({
     id: 'coworker-workspace',
     name: 'Coworker Workspace',
-    filesystem: new LocalFilesystem({
-      basePath: WORKSPACE_PATH,
-      allowedPaths: skillPaths,
-    }),
+    mounts: {
+      '/data': new LocalFilesystem({ basePath: DATA_PATH }),
+    },
     sandbox: new LocalSandbox({
       workingDirectory: WORKSPACE_PATH,
       env: {

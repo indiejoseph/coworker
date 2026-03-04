@@ -266,7 +266,7 @@ export default memo(function SuperpowersPage() {
                 />
               ))}
             </div>
-          ) : isLoading && tab !== 'installed' ? (
+          ) : isLoading ? (
             <div className="flex items-center justify-center py-16">
               <span className="material-icon text-muted-dim animate-spin" style={{ fontSize: 24 }}>
                 progress_activity
