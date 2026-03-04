@@ -1,4 +1,4 @@
-FROM node:22-debian AS builder
+FROM node:22-bookworm AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ RUN npx mastra build --studio && \
   cd .mastra/output && npm install || true
 
 # ── Production (Debian for glibc native module compatibility) ──
-FROM node:22-debian
+FROM node:22-bookworm
 
 WORKDIR /app
 
