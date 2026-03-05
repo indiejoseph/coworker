@@ -8,7 +8,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { agentConfig } from "../../config/agent-config";
-import { DATA_PATH, WORKSPACE_PATH } from "../../config/paths";
+import { WORKSPACE_PATH } from "../../config/paths";
 
 // Auto-create essential directories (Docker entrypoint does this too, but needed for local dev)
 fs.mkdirSync(path.join(WORKSPACE_PATH, ".agents", "skills"), {
@@ -103,13 +103,21 @@ export function getDynamicWorkspace({
 	const detection = LocalSandbox.detectIsolation();
 	const userEnv = agentConfig.getSandboxEnv();
 
+	console.log("WORKSPACE_PATH", WORKSPACE_PATH);
+
 	return new Workspace({
 		id: "coworker-workspace",
 		name: "Coworker Workspace",
+		// mounts: {
+		// 	'/workspace': new LocalFilesystem({
+		// 		basePath: WORKSPACE_PATH,
+		// 		allowedPaths: skillPaths,
+		// 	})
+		// },
 		filesystem: new LocalFilesystem({
-      basePath: WORKSPACE_PATH,
-      allowedPaths: skillPaths,
-    }),
+			basePath: WORKSPACE_PATH,
+			allowedPaths: skillPaths,
+		}),
 		sandbox: new LocalSandbox({
 			workingDirectory: WORKSPACE_PATH,
 			env: {
@@ -131,5 +139,5 @@ export function getDynamicWorkspace({
 		...(skillPaths.length > 0 ? { skills: skillPaths } : {}),
 		bm25: true,
 		autoIndexPaths: [...skillPaths],
-	});
+	})
 }

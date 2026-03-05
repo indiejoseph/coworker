@@ -27,7 +27,7 @@ export const sharedConfig = {
 		yolo: true,
 	},
 	memory: getDynamicMemory(harnessStorage), // Dynamic factory — Harness resolves at runtime
-	workspace: getDynamicWorkspace,
+	workspace: getDynamicWorkspace as any,
 	toolCategoryResolver: getToolCategory,
 	modes: [
 		{
@@ -53,7 +53,7 @@ export const sharedConfig = {
 	tools: async ({ requestContext }: { requestContext: any }) => {
 		const mcpTools = await getMcpToolsets();
 		const wsTools = createWorkspaceTools(
-			getDynamicWorkspace({ requestContext }),
+			getDynamicWorkspace({ requestContext }) as any,
 		);
 		return {
 			...mcpTools,
