@@ -16,7 +16,6 @@ RUN npm ci
 # Copy the app source
 COPY apps/api/src ./apps/api/src
 COPY apps/api/tsconfig.json ./apps/api/tsconfig.json
-COPY apps/api/index.ts ./apps/api/index.ts
 
 # Build the app
 WORKDIR /app/apps/api
@@ -65,7 +64,7 @@ RUN mkdir -p /data/home /data/whatsapp-auth /data/gog /data/config /data/workspa
   chown -R mastra:nodejs /app /data
 
 # Copy built-in skills for seeding into workspace
-COPY src/mastra/skills /app/builtin-skills
+COPY apps/api/src/mastra/skills /app/builtin-skills
 
 # Entrypoint: fix volume ownership (mounted as root), then drop to mastra user
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
