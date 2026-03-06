@@ -25,7 +25,7 @@ RUN npx mastra build --studio && \
 # ── Production (Debian for glibc native module compatibility) ──
 FROM node:22-bookworm
 
-WORKDIR /app/apps/api
+WORKDIR /app
 
 # Install runtimes, CLIs, and tools for agent sandbox
 ARG GOG_VERSION=0.9.0
@@ -54,7 +54,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   rm -rf /var/lib/apt/lists/* /tmp/gog.tar.gz
 
 # Copy the self-contained build output (includes its own node_modules)
-COPY --from=builder /app/.mastra/output ./
+COPY --from=builder /app/apps/api/.mastra/output ./
 # Create non-root user with home on persistent volume
 RUN groupadd -g 1001 nodejs && \
   useradd -u 1001 -g nodejs -d /data/home -s /bin/bash mastra
