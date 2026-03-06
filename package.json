@@ -1,61 +1,19 @@
 {
-  "name": "coworker",
-  "version": "0.2.0",
+  "name": "coworker-monorepo",
+  "version": "0.1.0",
   "private": true,
-  "description": "Advanced Mastra AI coding agent with secure sandbox execution, comprehensive file management, and multi-language support for Python, JavaScript, and TypeScript development workflows",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Array-Ventures/coworker.git"
-  },
-  "license": "UNLICENSED",
-  "author": "Array Ventures",
-  "type": "module",
-  "module": "index.ts",
+  "description": "Coworker Monorepo",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "build": "mastra build",
-    "build:app": "cd app && bun run build",
-    "predev": "lsof -ti :4111 | xargs kill -9 2>/dev/null || true;",
-    "dev": "mastra dev",
-    "dev:app": "cd app && npm run dev",
-    "start": "mastra start",
-    "test": "bun test",
-    "test:watch": "bun test --watch"
-  },
-  "dependencies": {
-    "@ai-sdk/google": "3.0.37",
-    "@mastra/ai-sdk": "^1.1.1",
-    "@mastra/core": "^1.9.0",
-    "@mastra/e2b": "^0.1.1",
-    "@mastra/fastembed": "^1.0.0",
-    "@mastra/libsql": "^1.6.3",
-    "@mastra/loggers": "^1.0.2",
-    "@mastra/mcp": "^1.0.3",
-    "@mastra/memory": "^1.6.0",
-    "@mastra/observability": "^1.3.0",
-    "@mcp-ui/server": "^6.1.0",
-    "@modelcontextprotocol/ext-apps": "^1.1.2",
-    "@modelcontextprotocol/sdk": "^1.27.1",
-    "@types/dompurify": "^3.2.0",
-    "@whiskeysockets/baileys": "^7.0.0-rc.9",
-    "agent-browser": "^0.16.3",
-    "croner": "^10.0.1",
-    "dompurify": "^3.3.1",
-    "hono": "4.12.5",
-    "qrcode": "^1.5.4",
-    "zod": "^4.3.6"
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.5",
-    "@types/bun": "latest",
-    "@types/node": "^25.3.3",
-    "@types/qrcode": "^1.5.6",
-    "mastra": "latest",
-    "typescript": "^5.9.3"
+    "turbo": "latest"
   },
-  "engines": {
-    "node": ">=22.13.0"
-  },
-  "overrides": {
-    "hono": "$hono"
-  }
+  "packageManager": "npm@10.9.2"
 }

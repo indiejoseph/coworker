@@ -1,0 +1,13 @@
+diff --git a/node_modules/@mastra/core/dist/harness/index.js b/node_modules/@mastra/core/dist/harness/index.js
+index 1a2db50..c4df5ba 100644
+--- a/node_modules/@mastra/core/dist/harness/index.js
++++ b/node_modules/@mastra/core/dist/harness/index.js
+@@ -1668,7 +1668,7 @@ ${textContent}
+         case "image": {
+           const imgData = typeof part.data === "string" ? part.data : typeof part.image === "string" ? part.image : "";
+           content.push({
+-            type: "file",
++            type: "image",
+             data: imgData,
+             mediaType: part.mimeType ?? part.mediaType ?? "image/png"
+           });

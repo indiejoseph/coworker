@@ -1,0 +1,64 @@
+{
+  "name": "coworker-api",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Advanced Mastra AI coding agent with secure sandbox execution, comprehensive file management, and multi-language support for Python, JavaScript, and TypeScript development workflows",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Array-Ventures/coworker.git"
+  },
+  "license": "UNLICENSED",
+  "author": "Array Ventures",
+  "type": "module",
+  "module": "index.ts",
+  "scripts": {
+    "build": "mastra build",
+    "predev": "lsof -ti :4111 | xargs kill -9 2>/dev/null || true;",
+    "dev": "mastra dev",
+    "postinstall": "patch-package",
+    "lint": "npx @biomejs/biome lint . --fix",
+    "start": "mastra start",
+    "test": "npm test",
+    "test:watch": "npm test --watch"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "3.0.43",
+    "@google/genai": "1.44.0",
+    "@mastra/ai-sdk": "^1.1.2",
+    "@mastra/core": "^1.10.0",
+    "@mastra/e2b": "^0.1.1",
+    "@mastra/fastembed": "^1.0.1",
+    "@mastra/libsql": "^1.6.4",
+    "@mastra/loggers": "^1.0.2",
+    "@mastra/mcp": "^1.1.0",
+    "@mastra/memory": "^1.6.1",
+    "@mastra/observability": "^1.3.1",
+    "@mcp-ui/server": "^6.1.0",
+    "@modelcontextprotocol/ext-apps": "^1.1.2",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@types/dompurify": "^3.2.0",
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "agent-browser": "^0.16.3",
+    "croner": "^10.0.1",
+    "dompurify": "^3.3.2",
+    "hono": "4.12.5",
+    "qrcode": "^1.5.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.6",
+    "@types/bun": "latest",
+    "@types/node": "^25.3.5",
+    "@types/qrcode": "^1.5.6",
+    "mastra": "latest",
+    "patch-package": "^8.0.1",
+    "postinstall-postinstall": "^2.1.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "overrides": {
+    "hono": "$hono"
+  }
+}
