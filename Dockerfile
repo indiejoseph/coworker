@@ -25,7 +25,7 @@ RUN npx mastra build --studio && \
 # ── Production (Debian for glibc native module compatibility) ──
 FROM node:22-bookworm
 
-WORKDIR /app
+WORKDIR /app/apps/api
 
 # Install runtimes, CLIs, and tools for agent sandbox
 ARG GOG_VERSION=0.9.0
