@@ -1,13 +1,1482 @@
 diff --git a/node_modules/@mastra/core/dist/harness/index.js b/node_modules/@mastra/core/dist/harness/index.js
-index 1a2db50..c4df5ba 100644
+index 1a2db50..66c536c 100644
 --- a/node_modules/@mastra/core/dist/harness/index.js
 +++ b/node_modules/@mastra/core/dist/harness/index.js
-@@ -1668,7 +1668,7 @@ ${textContent}
+@@ -187,7 +187,7 @@ Returns:
+ - Boolean indicating if all tasks are done`,
+   inputSchema: z.object({}),
+   // No input needed
+-  execute: async ({}, context) => {
++  execute: async ({ }, context) => {
+     try {
+       const harnessCtx = context?.requestContext?.get("harness");
+       if (!harnessCtx) {
+@@ -251,7 +251,7 @@ All tasks completed: ${allDone ? "\u2713 YES" : "\u2717 NO"}`;
+     }
+   }
+ });
+-function createSubagentTool(opts) {
++function createSubagentTool (opts) {
+   const { subagents, resolveModel, harnessTools, fallbackModelId } = opts;
+   const subagentIds = subagents.map((s) => s.id);
+   const typeDescriptions = subagents.map((s) => `- **${s.id}** (${s.name}): ${s.description}`).join("\n");
+@@ -412,12 +412,12 @@ ${partialText}` : "[Aborted by user]";
+     }
+   });
+ }
+-function buildSubagentMeta(modelId, durationMs, toolCalls) {
++function buildSubagentMeta (modelId, durationMs, toolCalls) {
+   const tools = toolCalls.map((tc) => `${tc.name}:${tc.isError ? "err" : "ok"}`).join(",");
+   return `
+ <subagent-meta modelId="${modelId}" durationMs="${durationMs}" tools="${tools}" />`;
+ }
+-function parseSubagentMeta(content) {
++function parseSubagentMeta (content) {
+   const match = content.match(/\n<subagent-meta modelId="([^"]*)" durationMs="(\d+)" tools="([^"]*)" \/>$/);
+   if (!match) return { text: content };
+   const text = content.slice(0, match.index);
+@@ -431,7 +431,7 @@ function parseSubagentMeta(content) {
+ }
+ 
+ // src/harness/types.ts
+-function defaultDisplayState() {
++function defaultDisplayState () {
+   return {
+     isRunning: false,
+     currentMessage: null,
+@@ -450,7 +450,7 @@ function defaultDisplayState() {
+     previousTasks: []
+   };
+ }
+-function defaultOMProgressState() {
++function defaultOMProgressState () {
+   return {
+     status: "idle",
+     pendingTokens: 0,
+@@ -542,7 +542,7 @@ var Harness = class {
+    * Initialize the harness — loads storage and workspace.
+    * Must be called before using the harness.
+    */
+-  async init() {
++  async init () {
+     if (this.config.storage) {
+       this.#internalMastra = new Mastra({ logger: false, storage: this.config.storage });
+       await this.#internalMastra.getStorage().init();
+@@ -589,7 +589,7 @@ var Harness = class {
+   /**
+    * Select the most recent thread, or create one if none exist.
+    */
+-  async selectOrCreateThread() {
++  async selectOrCreateThread () {
+     const threads = await this.listThreads();
+     if (threads.length === 0) {
+       return await this.createThread();
+@@ -601,7 +601,7 @@ var Harness = class {
+     await this.loadThreadMetadata();
+     return mostRecent;
+   }
+-  async getMemoryStorage() {
++  async getMemoryStorage () {
+     if (!this.config.storage) {
+       throw new Error("Storage is not configured on this Harness");
+     }
+@@ -617,14 +617,14 @@ var Harness = class {
+   /**
+    * Get current harness state (read-only snapshot).
+    */
+-  getState() {
++  getState () {
+     return { ...this.state };
+   }
+   /**
+    * Update harness state. Validates against schema if provided.
+    * Emits state_changed event.
+    */
+-  async setState(updates) {
++  async setState (updates) {
+     const changedKeys = Object.keys(updates);
+     const newState = { ...this.state, ...updates };
+     if (this.config.stateSchema) {
+@@ -638,7 +638,7 @@ var Harness = class {
+     }
+     this.emit({ type: "state_changed", state: this.state, changedKeys });
+   }
+-  getSchemaDefaults() {
++  getSchemaDefaults () {
+     if (!this.config.stateSchema) return {};
+     const shape = this.config.stateSchema.shape;
+     const defaults = {};
+@@ -656,13 +656,13 @@ var Harness = class {
+   // ===========================================================================
+   // Mode Management
+   // ===========================================================================
+-  listModes() {
++  listModes () {
+     return this.config.modes;
+   }
+-  getCurrentModeId() {
++  getCurrentModeId () {
+     return this.currentModeId;
+   }
+-  getCurrentMode() {
++  getCurrentMode () {
+     const mode = this.config.modes.find((m) => m.id === this.currentModeId);
+     if (!mode) {
+       throw new Error(`Mode not found: ${this.currentModeId}`);
+@@ -673,7 +673,7 @@ var Harness = class {
+    * Switch to a different mode.
+    * Aborts any in-progress generation and switches to the mode's default model.
+    */
+-  async switchMode({ modeId }) {
++  async switchMode ({ modeId }) {
+     const mode = this.config.modes.find((m) => m.id === modeId);
+     if (!mode) {
+       throw new Error(`Mode not found: ${modeId}`);
+@@ -697,7 +697,7 @@ var Harness = class {
+    * Load the stored model ID for a specific mode.
+    * Falls back to: thread metadata -> mode's defaultModelId -> current model.
+    */
+-  async loadModeModelId(modeId) {
++  async loadModeModelId (modeId) {
+     if (this.currentThreadId && this.config.storage) {
+       try {
+         const memoryStorage = await this.getMemoryStorage();
+@@ -715,7 +715,7 @@ var Harness = class {
+   /**
+    * Get the agent for the current mode.
+    */
+-  getCurrentAgent() {
++  getCurrentAgent () {
+     const mode = this.getCurrentMode();
+     if (typeof mode.agent === "function") {
+       return mode.agent(this.state);
+@@ -725,7 +725,7 @@ var Harness = class {
+   /**
+    * Get a short display name from the current model ID.
+    */
+-  getModelName() {
++  getModelName () {
+     const modelId = this.getCurrentModelId();
+     if (!modelId || modelId === "unknown") return modelId || "unknown";
+     const parts = modelId.split("/");
+@@ -734,13 +734,13 @@ var Harness = class {
+   /**
+    * Get the full model ID (e.g., "anthropic/claude-sonnet-4").
+    */
+-  getFullModelId() {
++  getFullModelId () {
+     return this.getCurrentModelId();
+   }
+   /**
+    * Switch to a different model at runtime.
+    */
+-  async switchModel({
++  async switchModel ({
+     modelId,
+     scope = "thread",
+     modeId
+@@ -759,18 +759,18 @@ var Harness = class {
+     }
+     this.emit({ type: "model_changed", modelId, scope, modeId: targetModeId });
+   }
+-  getCurrentModelId() {
++  getCurrentModelId () {
+     const state = this.getState();
+     return state.currentModelId ?? "";
+   }
+-  hasModelSelected() {
++  hasModelSelected () {
+     return this.getCurrentModelId() !== "";
+   }
+   /**
+    * Check if the current model's provider has authentication configured.
+    * Uses the provider registry's `apiKeyEnvVar` and the optional `modelAuthChecker` hook.
+    */
+-  async getCurrentModelAuthStatus() {
++  async getCurrentModelAuthStatus () {
+     const modelId = this.getCurrentModelId();
+     try {
+       const availableModels = await this.listAvailableModels();
+@@ -812,7 +812,7 @@ var Harness = class {
+    * Uses the optional `modelAuthChecker`, `modelUseCountProvider`, and
+    * `customModelCatalogProvider` hooks.
+    */
+-  async listAvailableModels() {
++  async listAvailableModels () {
+     try {
+       const { PROVIDER_REGISTRY } = await import('../provider-registry-LVP6T63V.js');
+       if (!PROVIDER_REGISTRY) return [];
+@@ -871,7 +871,7 @@ var Harness = class {
+       return [];
+     }
+   }
+-  async getProviderApiKeyEnvVar(provider) {
++  async getProviderApiKeyEnvVar (provider) {
+     try {
+       const { PROVIDER_REGISTRY } = await import('../provider-registry-LVP6T63V.js');
+       const registry = PROVIDER_REGISTRY;
+@@ -884,25 +884,25 @@ var Harness = class {
+   // ===========================================================================
+   // Thread Management
+   // ===========================================================================
+-  getCurrentThreadId() {
++  getCurrentThreadId () {
+     return this.currentThreadId;
+   }
+-  getResourceId() {
++  getResourceId () {
+     return this.resourceId;
+   }
+-  setResourceId({ resourceId }) {
++  setResourceId ({ resourceId }) {
+     this.resourceId = resourceId;
+     this.currentThreadId = null;
+   }
+-  getDefaultResourceId() {
++  getDefaultResourceId () {
+     return this.defaultResourceId;
+   }
+-  async getKnownResourceIds() {
++  async getKnownResourceIds () {
+     const threads = await this.listThreads({ allResources: true });
+     const ids = new Set(threads.map((t) => t.resourceId));
+     return [...ids].sort();
+   }
+-  async createThread({ title } = {}) {
++  async createThread ({ title } = {}) {
+     const now = /* @__PURE__ */ new Date();
+     const thread = {
+       id: this.generateId(),
+@@ -983,7 +983,7 @@ var Harness = class {
+   /**
+    * Returns a memory accessor with thread and message management methods.
+    */
+-  get memory() {
++  get memory () {
+     return {
+       createThread: this.createThread.bind(this),
+       switchThread: this.switchThread.bind(this),
+@@ -992,7 +992,7 @@ var Harness = class {
+       deleteThread: this.deleteThread.bind(this)
+     };
+   }
+-  async deleteThread({ threadId }) {
++  async deleteThread ({ threadId }) {
+     if (!this.config.storage) return;
+     const memoryStorage = await this.getMemoryStorage();
+     const thread = await memoryStorage.getThreadById({ threadId });
+@@ -1011,7 +1011,7 @@ var Harness = class {
+     }
+     this.emit({ type: "thread_deleted", threadId });
+   }
+-  async renameThread({ title }) {
++  async renameThread ({ title }) {
+     if (!this.currentThreadId || !this.config.storage) return;
+     const memoryStorage = await this.getMemoryStorage();
+     const thread = await memoryStorage.getThreadById({ threadId: this.currentThreadId });
+@@ -1021,7 +1021,7 @@ var Harness = class {
+       });
+     }
+   }
+-  async cloneThread({
++  async cloneThread ({
+     sourceThreadId,
+     title,
+     resourceId
+@@ -1070,7 +1070,7 @@ var Harness = class {
+     this.emit({ type: "thread_created", thread: clonedThread });
+     return clonedThread;
+   }
+-  async switchThread({ threadId }) {
++  async switchThread ({ threadId }) {
+     this.abort();
+     await this.config.threadLock?.acquire(threadId);
+     const previousThreadId = this.currentThreadId;
+@@ -1088,7 +1088,7 @@ var Harness = class {
+     await this.loadThreadMetadata();
+     this.emit({ type: "thread_changed", threadId, previousThreadId });
+   }
+-  async listThreads(options) {
++  async listThreads (options) {
+     if (!this.config.storage) return [];
+     const memoryStorage = await this.getMemoryStorage();
+     const filter = options?.allResources ? void 0 : { resourceId: this.resourceId };
+@@ -1102,7 +1102,7 @@ var Harness = class {
+       metadata: thread.metadata
+     }));
+   }
+-  async setThreadSetting({ key, value }) {
++  async setThreadSetting ({ key, value }) {
+     if (!this.currentThreadId || !this.config.storage) return;
+     try {
+       const memoryStorage = await this.getMemoryStorage();
+@@ -1119,7 +1119,7 @@ var Harness = class {
+     } catch {
+     }
+   }
+-  async deleteThreadSetting({ key }) {
++  async deleteThreadSetting ({ key }) {
+     if (!this.currentThreadId || !this.config.storage) return;
+     try {
+       const memoryStorage = await this.getMemoryStorage();
+@@ -1138,7 +1138,7 @@ var Harness = class {
+     } catch {
+     }
+   }
+-  async loadThreadMetadata() {
++  async loadThreadMetadata () {
+     if (!this.currentThreadId || !this.config.storage) {
+       this.tokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+       return;
+@@ -1201,7 +1201,7 @@ var Harness = class {
+    * Reads the OM record and recent messages to reconstruct status,
+    * then emits an `om_status` event for the UI.
+    */
+-  async loadOMProgress() {
++  async loadOMProgress () {
+     if (!this.currentThreadId) return;
+     try {
+       const memoryStorage = await this.getMemoryStorage();
+@@ -1296,7 +1296,7 @@ var Harness = class {
+     } catch {
+     }
+   }
+-  async getObservationalMemoryRecord() {
++  async getObservationalMemoryRecord () {
+     if (!this.currentThreadId) return null;
+     try {
+       const memoryStorage = await this.getMemoryStorage();
+@@ -1308,31 +1308,31 @@ var Harness = class {
+   /**
+    * Returns the observer model ID from state, falling back to omConfig defaults.
+    */
+-  getObserverModelId() {
++  getObserverModelId () {
+     return this.state.observerModelId ?? this.config.omConfig?.defaultObserverModelId;
+   }
+   /**
+    * Returns the reflector model ID from state, falling back to omConfig defaults.
+    */
+-  getReflectorModelId() {
++  getReflectorModelId () {
+     return this.state.reflectorModelId ?? this.config.omConfig?.defaultReflectorModelId;
+   }
+   /**
+    * Returns the observation threshold from state, falling back to omConfig defaults.
+    */
+-  getObservationThreshold() {
++  getObservationThreshold () {
+     return this.state.observationThreshold ?? this.config.omConfig?.defaultObservationThreshold;
+   }
+   /**
+    * Returns the reflection threshold from state, falling back to omConfig defaults.
+    */
+-  getReflectionThreshold() {
++  getReflectionThreshold () {
+     return this.state.reflectionThreshold ?? this.config.omConfig?.defaultReflectionThreshold;
+   }
+   /**
+    * Resolves the observer model ID to a language model instance via `resolveModel`.
+    */
+-  getResolvedObserverModel() {
++  getResolvedObserverModel () {
+     const modelId = this.getObserverModelId();
+     if (!modelId || !this.config.resolveModel) return void 0;
+     return this.config.resolveModel(modelId);
+@@ -1340,7 +1340,7 @@ var Harness = class {
+   /**
+    * Resolves the reflector model ID to a language model instance via `resolveModel`.
+    */
+-  getResolvedReflectorModel() {
++  getResolvedReflectorModel () {
+     const modelId = this.getReflectorModelId();
+     if (!modelId || !this.config.resolveModel) return void 0;
+     return this.config.resolveModel(modelId);
+@@ -1348,7 +1348,7 @@ var Harness = class {
+   /**
+    * Switch the Observer model.
+    */
+-  async switchObserverModel({ modelId }) {
++  async switchObserverModel ({ modelId }) {
+     void this.setState({ observerModelId: modelId });
+     await this.setThreadSetting({ key: "observerModelId", value: modelId });
+     this.emit({ type: "om_model_changed", role: "observer", modelId });
+@@ -1356,7 +1356,7 @@ var Harness = class {
+   /**
+    * Switch the Reflector model.
+    */
+-  async switchReflectorModel({ modelId }) {
++  async switchReflectorModel ({ modelId }) {
+     void this.setState({ reflectorModelId: modelId });
+     await this.setThreadSetting({ key: "reflectorModelId", value: modelId });
+     this.emit({ type: "om_model_changed", role: "reflector", modelId });
+@@ -1364,7 +1364,7 @@ var Harness = class {
+   // ===========================================================================
+   // Subagent Model Management
+   // ===========================================================================
+-  getSubagentModelId({ agentType } = {}) {
++  getSubagentModelId ({ agentType } = {}) {
+     const state = this.state;
+     if (agentType) {
+       const perType = state[`subagentModelId_${agentType}`];
+@@ -1373,7 +1373,7 @@ var Harness = class {
+     const global = state.subagentModelId;
+     return typeof global === "string" ? global : null;
+   }
+-  async setSubagentModelId({ modelId, agentType }) {
++  async setSubagentModelId ({ modelId, agentType }) {
+     const key = agentType ? `subagentModelId_${agentType}` : "subagentModelId";
+     void this.setState({ [key]: modelId });
+     await this.setThreadSetting({ key, value: modelId });
+@@ -1382,32 +1382,32 @@ var Harness = class {
+   // ===========================================================================
+   // Permissions
+   // ===========================================================================
+-  grantSessionCategory({ category }) {
++  grantSessionCategory ({ category }) {
+     this.sessionGrantedCategories.add(category);
+   }
+-  grantSessionTool({ toolName }) {
++  grantSessionTool ({ toolName }) {
+     this.sessionGrantedTools.add(toolName);
+   }
+-  getSessionGrants() {
++  getSessionGrants () {
+     return {
+       categories: [...this.sessionGrantedCategories],
+       tools: [...this.sessionGrantedTools]
+     };
+   }
+-  getToolCategory({ toolName }) {
++  getToolCategory ({ toolName }) {
+     return this.config.toolCategoryResolver?.(toolName) ?? null;
+   }
+-  setPermissionForCategory({ category, policy }) {
++  setPermissionForCategory ({ category, policy }) {
+     const rules = this.getPermissionRules();
+     rules.categories[category] = policy;
+     void this.setState({ permissionRules: rules });
+   }
+-  setPermissionForTool({ toolName, policy }) {
++  setPermissionForTool ({ toolName, policy }) {
+     const rules = this.getPermissionRules();
+     rules.tools[toolName] = policy;
+     void this.setState({ permissionRules: rules });
+   }
+-  getPermissionRules() {
++  getPermissionRules () {
+     const state = this.state;
+     const rules = state.permissionRules;
+     return rules ?? { categories: {}, tools: {} };
+@@ -1417,7 +1417,7 @@ var Harness = class {
+    * Resolution chain: yolo → per-tool policy → session tool grant →
+    * session category grant → category policy → "ask"
+    */
+-  resolveToolApproval(toolName) {
++  resolveToolApproval (toolName) {
+     const state = this.state;
+     if (state.yolo === true) return "allow";
+     const rules = this.getPermissionRules();
+@@ -1439,7 +1439,7 @@ var Harness = class {
+    * Send a message to the current agent.
+    * Streams the response and emits events.
+    */
+-  async sendMessage({
++  async sendMessage ({
+     content,
+     files,
+     tracingContext,
+@@ -1482,7 +1482,8 @@ var Harness = class {
+               }
+             }
+             const label = f.filename ? `[File: ${f.filename}]` : "[Attached file]";
+-            return { type: "text", text: `${label}
++            return {
++              type: "text", text: `${label}
+ \`\`\`
+ ${textContent}
+ \`\`\`` };
+@@ -1542,11 +1543,11 @@ ${textContent}
+       }
+     }
+   }
+-  async listMessages(options) {
++  async listMessages (options) {
+     if (!this.currentThreadId) return [];
+     return this.listMessagesForThread({ threadId: this.currentThreadId, limit: options?.limit });
+   }
+-  async listMessagesForThread({ threadId, limit }) {
++  async listMessagesForThread ({ threadId, limit }) {
+     if (!this.config.storage) return [];
+     const memoryStorage = await this.getMemoryStorage();
+     if (limit) {
+@@ -1561,7 +1562,7 @@ ${textContent}
+     const result = await memoryStorage.listMessages({ threadId, perPage: false });
+     return result.messages.map((msg) => this.convertToHarnessMessage(msg));
+   }
+-  async getFirstUserMessageForThread({ threadId }) {
++  async getFirstUserMessageForThread ({ threadId }) {
+     if (!this.config.storage) return null;
+     const memoryStorage = await this.getMemoryStorage();
+     const result = await memoryStorage.listMessages({
+@@ -1573,7 +1574,7 @@ ${textContent}
+     const userMsg = result.messages.find((m) => m.role === "user");
+     return userMsg ? this.convertToHarnessMessage(userMsg) : null;
+   }
+-  convertToHarnessMessage(msg) {
++  convertToHarnessMessage (msg) {
+     const content = [];
+     for (const part of msg.content.parts) {
+       switch (part.type) {
+@@ -1668,9 +1669,9 @@ ${textContent}
          case "image": {
            const imgData = typeof part.data === "string" ? part.data : typeof part.image === "string" ? part.image : "";
            content.push({
 -            type: "file",
 +            type: "image",
              data: imgData,
-             mediaType: part.mimeType ?? part.mediaType ?? "image/png"
+-            mediaType: part.mimeType ?? part.mediaType ?? "image/png"
++            mimeType: part.mimeType ?? part.mediaType ?? "image/png"
            });
+           break;
+         }
+@@ -1681,7 +1682,7 @@ ${textContent}
+   /**
+    * Process a stream response (shared between sendMessage and tool approval).
+    */
+-  async processStream(response, requestContext) {
++  async processStream (response, requestContext) {
+     let currentMessage = {
+       id: this.generateId(),
+       role: "assistant",
+@@ -2066,7 +2067,7 @@ ${textContent}
+   /**
+    * Abort the current operation.
+    */
+-  abort() {
++  abort () {
+     if (this.abortController) {
+       this.abortRequested = true;
+       try {
+@@ -2079,7 +2080,7 @@ ${textContent}
+   /**
+    * Steer the agent mid-stream: aborts current run and sends a new message.
+    */
+-  async steer({ content, requestContext }) {
++  async steer ({ content, requestContext }) {
+     this.abort();
+     this.followUpQueue = [];
+     await this.sendMessage({ content, requestContext });
+@@ -2087,7 +2088,7 @@ ${textContent}
+   /**
+    * Queue a follow-up message to be processed after the current operation completes.
+    */
+-  async followUp({ content, requestContext }) {
++  async followUp ({ content, requestContext }) {
+     if (this.isRunning()) {
+       this.followUpQueue.push({ content, requestContext });
+       this.emit({ type: "follow_up_queued", count: this.followUpQueue.length });
+@@ -2095,13 +2096,13 @@ ${textContent}
+       await this.sendMessage({ content, requestContext });
+     }
+   }
+-  getFollowUpCount() {
++  getFollowUpCount () {
+     return this.followUpQueue.length;
+   }
+-  isRunning() {
++  isRunning () {
+     return this.abortController !== null;
+   }
+-  getCurrentRunId() {
++  getCurrentRunId () {
+     return this.currentRunId;
+   }
+   // ===========================================================================
+@@ -2111,14 +2112,14 @@ ${textContent}
+    * Returns a read-only snapshot of the canonical display state.
+    * UIs should use this to render instead of building up state from raw events.
+    */
+-  getDisplayState() {
++  getDisplayState () {
+     return this.displayState;
+   }
+   /**
+    * Reset display state fields that are scoped to a thread.
+    * Called on thread switch/creation.
+    */
+-  resetThreadDisplayState() {
++  resetThreadDisplayState () {
+     this.displayState.activeTools = /* @__PURE__ */ new Map();
+     this.displayState.toolInputBuffers = /* @__PURE__ */ new Map();
+     this.displayState.pendingApproval = null;
+@@ -2137,7 +2138,7 @@ ${textContent}
+    * Respond to a pending tool approval from the UI.
+    * "always_allow_category" grants the tool's category for the rest of the session, then approves.
+    */
+-  respondToToolApproval({
++  respondToToolApproval ({
+     decision,
+     requestContext
+   }) {
+@@ -2163,14 +2164,14 @@ ${textContent}
+    * Register a pending question resolver.
+    * Called by agent tools (e.g., ask_user) to pause execution until the UI responds.
+    */
+-  registerQuestion({ questionId, resolve }) {
++  registerQuestion ({ questionId, resolve }) {
+     this.pendingQuestions.set(questionId, resolve);
+   }
+   /**
+    * Resolve a pending question with the user's answer.
+    * Called by the UI when the user responds to a question dialog.
+    */
+-  respondToQuestion({ questionId, answer }) {
++  respondToQuestion ({ questionId, answer }) {
+     const resolve = this.pendingQuestions.get(questionId);
+     if (resolve) {
+       this.pendingQuestions.delete(questionId);
+@@ -2181,7 +2182,7 @@ ${textContent}
+    * Register a pending plan approval resolver.
+    * Called by agent tools (e.g., submit_plan) to pause execution until approval.
+    */
+-  registerPlanApproval({
++  registerPlanApproval ({
+     planId,
+     resolve
+   }) {
+@@ -2192,7 +2193,7 @@ ${textContent}
+    * On approval: switches to the default mode, then resolves the promise.
+    * On rejection: resolves with feedback (stays in current mode).
+    */
+-  async respondToPlanApproval({
++  async respondToPlanApproval ({
+     planId,
+     response
+   }) {
+@@ -2207,7 +2208,7 @@ ${textContent}
+     this.pendingPlanApprovals.delete(planId);
+     resolve(response);
+   }
+-  async handleToolApprove({
++  async handleToolApprove ({
+     toolCallId,
+     requestContext: requestContextInput
+   }) {
+@@ -2230,7 +2231,7 @@ ${textContent}
+     });
+     return await this.processStream(response, requestContext);
+   }
+-  async handleToolDecline({
++  async handleToolDecline ({
+     toolCallId,
+     requestContext: requestContextInput
+   }) {
+@@ -2259,7 +2260,7 @@ ${textContent}
+   /**
+    * Subscribe to harness events. Returns an unsubscribe function.
+    */
+-  subscribe(listener) {
++  subscribe (listener) {
+     this.listeners.push(listener);
+     return () => {
+       const index = this.listeners.indexOf(listener);
+@@ -2268,7 +2269,7 @@ ${textContent}
+       }
+     };
+   }
+-  emit(event) {
++  emit (event) {
+     this.applyDisplayStateUpdate(event);
+     this.dispatchToListeners(event);
+     if (event.type !== "display_state_changed") {
+@@ -2278,7 +2279,7 @@ ${textContent}
+       });
+     }
+   }
+-  dispatchToListeners(event) {
++  dispatchToListeners (event) {
+     for (const listener of this.listeners) {
+       try {
+         const result = listener(event);
+@@ -2295,7 +2296,7 @@ ${textContent}
+    * This is the centralized state machine that keeps HarnessDisplayState in sync
+    * with every event the Harness emits.
+    */
+-  applyDisplayStateUpdate(event) {
++  applyDisplayStateUpdate (event) {
+     const ds = this.displayState;
+     switch (event.type) {
+       // ── Agent lifecycle ────────────────────────────────────────────────
+@@ -2621,7 +2622,7 @@ ${textContent}
+    * and optionally subagent) plus any user-configured tools.
+    * Used by sendMessage, handleToolApprove, and handleToolDecline.
+    */
+-  async buildToolsets(requestContext) {
++  async buildToolsets (requestContext) {
+     const builtInTools = {
+       ask_user: askUserTool,
+       submit_plan: submitPlanTool,
+@@ -2653,7 +2654,7 @@ ${textContent}
+    * Build request context for agent execution.
+    * Tools can access harness state via requestContext.get('harness').
+    */
+-  async buildRequestContext(requestContext) {
++  async buildRequestContext (requestContext) {
+     requestContext ??= new RequestContext();
+     const harnessContext = {
+       harnessId: this.id,
+@@ -2681,7 +2682,7 @@ ${textContent}
+   /**
+    * Resolve memory from config — handles both static instances and dynamic factory functions.
+    */
+-  async resolveMemory() {
++  async resolveMemory () {
+     const mem = this.config.memory;
+     if (!mem) {
+       throw new Error("Memory is not configured on this Harness");
+@@ -2699,10 +2700,10 @@ ${textContent}
+   // ===========================================================================
+   // Token Usage
+   // ===========================================================================
+-  getTokenUsage() {
++  getTokenUsage () {
+     return { ...this.tokenUsage };
+   }
+-  async persistTokenUsage() {
++  async persistTokenUsage () {
+     if (!this.currentThreadId || !this.config.storage) return;
+     try {
+       const memoryStorage = await this.getMemoryStorage();
+@@ -2722,7 +2723,7 @@ ${textContent}
+   // ===========================================================================
+   // Workspace
+   // ===========================================================================
+-  getWorkspace() {
++  getWorkspace () {
+     return this.workspace;
+   }
+   /**
+@@ -2730,7 +2731,7 @@ ${textContent}
+    * this triggers resolution and caches the result so getWorkspace() returns it.
+    * Useful for code paths outside the request flow (e.g. slash commands).
+    */
+-  async resolveWorkspace({
++  async resolveWorkspace ({
+     requestContext
+   } = {}) {
+     if (this.workspace) return this.workspace;
+@@ -2740,14 +2741,14 @@ ${textContent}
+     }
+     return void 0;
+   }
+-  hasWorkspace() {
++  hasWorkspace () {
+     return this.config.workspace !== void 0;
+   }
+-  isWorkspaceReady() {
++  isWorkspaceReady () {
+     if (this.workspaceFn) return true;
+     return this.workspaceInitialized && this.workspace !== void 0;
+   }
+-  async destroyWorkspace() {
++  async destroyWorkspace () {
+     if (this.workspaceFn) return;
+     if (this.workspace && this.workspaceInitialized) {
+       try {
+@@ -2764,7 +2765,7 @@ ${textContent}
+   // ===========================================================================
+   // Heartbeat Handlers
+   // ===========================================================================
+-  startHeartbeats() {
++  startHeartbeats () {
+     const handlers = this.config.heartbeatHandlers;
+     if (!handlers?.length) return;
+     for (const hb of handlers) {
+@@ -2784,7 +2785,7 @@ ${textContent}
+       this.heartbeatTimers.set(hb.id, { timer, shutdown: hb.shutdown });
+     }
+   }
+-  registerHeartbeat(handler) {
++  registerHeartbeat (handler) {
+     void this.removeHeartbeat({ id: handler.id });
+     const run = async () => {
+       try {
+@@ -2800,7 +2801,7 @@ ${textContent}
+     timer.unref();
+     this.heartbeatTimers.set(handler.id, { timer, shutdown: handler.shutdown });
+   }
+-  async removeHeartbeat({ id }) {
++  async removeHeartbeat ({ id }) {
+     const entry = this.heartbeatTimers.get(id);
+     if (entry) {
+       clearInterval(entry.timer);
+@@ -2812,7 +2813,7 @@ ${textContent}
+       }
+     }
+   }
+-  async stopHeartbeats() {
++  async stopHeartbeats () {
+     const entries = [...this.heartbeatTimers.entries()];
+     this.heartbeatTimers.clear();
+     for (const [id, entry] of entries) {
+@@ -2827,7 +2828,7 @@ ${textContent}
+   // ===========================================================================
+   // Session
+   // ===========================================================================
+-  async getSession() {
++  async getSession () {
+     return {
+       currentThreadId: this.currentThreadId,
+       currentModeId: this.currentModeId,
+@@ -2837,7 +2838,7 @@ ${textContent}
+   // ===========================================================================
+   // Utilities
+   // ===========================================================================
+-  generateId() {
++  generateId () {
+     if (this.config.idGenerator) {
+       return this.config.idGenerator();
+     }
+diff --git a/node_modules/@mastra/core/dist/llm/model/provider-types.generated.d.ts b/node_modules/@mastra/core/dist/llm/model/provider-types.generated.d.ts
+index ab6e2c4..13980cc 100644
+--- a/node_modules/@mastra/core/dist/llm/model/provider-types.generated.d.ts
++++ b/node_modules/@mastra/core/dist/llm/model/provider-types.generated.d.ts
+@@ -623,7 +623,9 @@ export type ProviderModelsMap = {
+     'gpt-5.2',
+     'gpt-5.2-codex',
+     'gpt-5.3-codex',
++    'gpt-5.3-codex-spark',
+     'gpt-5.4',
++    'gpt-5.4-pro',
+     'kimi-k2.5',
+     'minimax-m2.1',
+     'minimax-m2.5',
+@@ -1239,6 +1241,9 @@ export type ProviderModelsMap = {
+     'openai/gpt-5.2-chat',
+     'openai/gpt-5.2-codex',
+     'openai/gpt-5.2-pro',
++    'openai/gpt-5.3-codex',
++    'openai/gpt-5.4',
++    'openai/gpt-5.4-pro',
+     'openai/gpt-oss-120b',
+     'openai/gpt-oss-120b:exacto',
+     'openai/gpt-oss-120b:free',
+@@ -1998,6 +2003,8 @@ export type ProviderModelsMap = {
+     'gpt-5.2-pro',
+     'gpt-5.3-codex',
+     'gpt-5.3-codex-spark',
++    'gpt-5.4',
++    'gpt-5.4-pro',
+     'o1',
+     'o1-mini',
+     'o1-preview',
+@@ -2720,6 +2727,12 @@ export type ProviderModelsMap = {
+     'openai/o3-mini',
+     'openai/o4-mini',
+   ];
++  readonly 'cloudflare/google': readonly [
++    'gemini-2.5-flash',
++    'gemini-2.5-flash-lite',
++    'gemini-2.5-pro',
++    'gemini-3-flash-preview',
++  ];
+ };
+ 
+ /**
+diff --git a/node_modules/@mastra/core/dist/provider-registry.json b/node_modules/@mastra/core/dist/provider-registry.json
+index b0bf7de..0e57430 100644
+--- a/node_modules/@mastra/core/dist/provider-registry.json
++++ b/node_modules/@mastra/core/dist/provider-registry.json
+@@ -384,7 +384,9 @@
+       "apiKeyEnvVar": "XIAOMI_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "Xiaomi",
+-      "models": ["mimo-v2-flash"],
++      "models": [
++        "mimo-v2-flash"
++      ],
+       "docUrl": "https://platform.xiaomimimo.com/#/docs",
+       "gateway": "models.dev"
+     },
+@@ -638,7 +640,9 @@
+       "apiKeyEnvVar": "KUAE_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "KUAE Cloud Coding Plan",
+-      "models": ["GLM-4.7"],
++      "models": [
++        "GLM-4.7"
++      ],
+       "docUrl": "https://docs.mthreads.com/kuaecloud/kuaecloud-doc-online/coding_plan/",
+       "gateway": "models.dev"
+     },
+@@ -647,7 +651,11 @@
+       "apiKeyEnvVar": "UPSTAGE_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "Upstage",
+-      "models": ["solar-mini", "solar-pro2", "solar-pro3"],
++      "models": [
++        "solar-mini",
++        "solar-pro2",
++        "solar-pro3"
++      ],
+       "docUrl": "https://developers.upstage.ai/docs/apis/chat",
+       "gateway": "models.dev"
+     },
+@@ -656,7 +664,10 @@
+       "apiKeyEnvVar": "INCEPTION_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "Inception",
+-      "models": ["mercury", "mercury-coder"],
++      "models": [
++        "mercury",
++        "mercury-coder"
++      ],
+       "docUrl": "https://platform.inceptionlabs.ai/docs",
+       "gateway": "models.dev"
+     },
+@@ -684,7 +695,12 @@
+       "apiKeyEnvVar": "MINIMAX_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "MiniMax Coding Plan (minimaxi.com)",
+-      "models": ["MiniMax-M2", "MiniMax-M2.1", "MiniMax-M2.5", "MiniMax-M2.5-highspeed"],
++      "models": [
++        "MiniMax-M2",
++        "MiniMax-M2.1",
++        "MiniMax-M2.5",
++        "MiniMax-M2.5-highspeed"
++      ],
+       "docUrl": "https://platform.minimaxi.com/docs/coding-plan/intro",
+       "gateway": "models.dev",
+       "npm": "@ai-sdk/anthropic"
+@@ -814,7 +830,9 @@
+         "gpt-5.2",
+         "gpt-5.2-codex",
+         "gpt-5.3-codex",
++        "gpt-5.3-codex-spark",
+         "gpt-5.4",
++        "gpt-5.4-pro",
+         "kimi-k2.5",
+         "minimax-m2.1",
+         "minimax-m2.5",
+@@ -952,7 +970,12 @@
+       "apiKeyEnvVar": "MINIMAX_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "MiniMax (minimaxi.com)",
+-      "models": ["MiniMax-M2", "MiniMax-M2.1", "MiniMax-M2.5", "MiniMax-M2.5-highspeed"],
++      "models": [
++        "MiniMax-M2",
++        "MiniMax-M2.1",
++        "MiniMax-M2.5",
++        "MiniMax-M2.5-highspeed"
++      ],
+       "docUrl": "https://platform.minimaxi.com/docs/guides/quickstart",
+       "gateway": "models.dev",
+       "npm": "@ai-sdk/anthropic"
+@@ -962,7 +985,10 @@
+       "apiKeyEnvVar": "BAILING_API_TOKEN",
+       "apiKeyHeader": "Authorization",
+       "name": "Bailing",
+-      "models": ["Ling-1T", "Ring-1T"],
++      "models": [
++        "Ling-1T",
++        "Ring-1T"
++      ],
+       "docUrl": "https://alipaytbox.yuque.com/sxs0ba/ling/intro",
+       "gateway": "models.dev"
+     },
+@@ -1163,7 +1189,12 @@
+       "apiKeyEnvVar": "MINIMAX_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "MiniMax Coding Plan (minimax.io)",
+-      "models": ["MiniMax-M2", "MiniMax-M2.1", "MiniMax-M2.5", "MiniMax-M2.5-highspeed"],
++      "models": [
++        "MiniMax-M2",
++        "MiniMax-M2.1",
++        "MiniMax-M2.5",
++        "MiniMax-M2.5-highspeed"
++      ],
+       "docUrl": "https://platform.minimax.io/docs/coding-plan/intro",
+       "gateway": "models.dev",
+       "npm": "@ai-sdk/anthropic"
+@@ -1173,7 +1204,10 @@
+       "apiKeyEnvVar": "KIMI_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "Kimi For Coding",
+-      "models": ["k2p5", "kimi-k2-thinking"],
++      "models": [
++        "k2p5",
++        "kimi-k2-thinking"
++      ],
+       "docUrl": "https://www.kimi.com/coding/docs/en/third-party-agents.html",
+       "gateway": "models.dev",
+       "npm": "@ai-sdk/anthropic"
+@@ -1307,7 +1341,11 @@
+       "apiKeyEnvVar": "STEPFUN_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "StepFun",
+-      "models": ["step-1-32k", "step-2-16k", "step-3.5-flash"],
++      "models": [
++        "step-1-32k",
++        "step-2-16k",
++        "step-3.5-flash"
++      ],
+       "docUrl": "https://platform.stepfun.com/docs/zh/overview/concept",
+       "gateway": "models.dev"
+     },
+@@ -1442,7 +1480,10 @@
+       "apiKeyEnvVar": "LUCIDQUERY_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "LucidQuery AI",
+-      "models": ["lucidnova-rf1-100b", "lucidquery-nexus-coder"],
++      "models": [
++        "lucidnova-rf1-100b",
++        "lucidquery-nexus-coder"
++      ],
+       "docUrl": "https://lucidquery.com/api/docs",
+       "gateway": "models.dev"
+     },
+@@ -1469,7 +1510,10 @@
+       "url": "https://api.deepseek.com",
+       "apiKeyEnvVar": "DEEPSEEK_API_KEY",
+       "name": "DeepSeek",
+-      "models": ["deepseek-chat", "deepseek-reasoner"],
++      "models": [
++        "deepseek-chat",
++        "deepseek-reasoner"
++      ],
+       "docUrl": "https://platform.deepseek.com/api-docs/pricing",
+       "gateway": "models.dev"
+     },
+@@ -1478,7 +1522,11 @@
+       "apiKeyEnvVar": "LMSTUDIO_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "LMStudio",
+-      "models": ["openai/gpt-oss-20b", "qwen/qwen3-30b-a3b-2507", "qwen/qwen3-coder-30b"],
++      "models": [
++        "openai/gpt-oss-20b",
++        "qwen/qwen3-30b-a3b-2507",
++        "qwen/qwen3-coder-30b"
++      ],
+       "docUrl": "https://lmstudio.ai/models",
+       "gateway": "models.dev"
+     },
+@@ -1606,6 +1654,9 @@
+         "openai/gpt-5.2-chat",
+         "openai/gpt-5.2-codex",
+         "openai/gpt-5.2-pro",
++        "openai/gpt-5.3-codex",
++        "openai/gpt-5.4",
++        "openai/gpt-5.4-pro",
+         "openai/gpt-oss-120b",
+         "openai/gpt-oss-120b:exacto",
+         "openai/gpt-oss-120b:free",
+@@ -1839,7 +1890,13 @@
+       "apiKeyEnvVar": "PRIVATEMODE_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "Privatemode AI",
+-      "models": ["gemma-3-27b", "gpt-oss-120b", "qwen3-coder-30b-a3b", "qwen3-embedding-4b", "whisper-large-v3"],
++      "models": [
++        "gemma-3-27b",
++        "gpt-oss-120b",
++        "qwen3-coder-30b-a3b",
++        "qwen3-embedding-4b",
++        "whisper-large-v3"
++      ],
+       "docUrl": "https://docs.privatemode.ai/api/overview",
+       "gateway": "models.dev"
+     },
+@@ -1940,7 +1997,10 @@
+       "apiKeyEnvVar": "NOVA_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "Nova",
+-      "models": ["nova-2-lite-v1", "nova-2-pro-v1"],
++      "models": [
++        "nova-2-lite-v1",
++        "nova-2-pro-v1"
++      ],
+       "docUrl": "https://nova.amazon.com/dev/documentation",
+       "gateway": "models.dev"
+     },
+@@ -1969,7 +2029,11 @@
+       "apiKeyEnvVar": "OPENCODE_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "OpenCode Go",
+-      "models": ["glm-5", "kimi-k2.5", "minimax-m2.5"],
++      "models": [
++        "glm-5",
++        "kimi-k2.5",
++        "minimax-m2.5"
++      ],
+       "docUrl": "https://opencode.ai/docs/zen",
+       "gateway": "models.dev"
+     },
+@@ -2526,6 +2590,8 @@
+         "gpt-5.2-pro",
+         "gpt-5.3-codex",
+         "gpt-5.3-codex-spark",
++        "gpt-5.4",
++        "gpt-5.4-pro",
+         "o1",
+         "o1-mini",
+         "o1-preview",
+@@ -2549,7 +2615,10 @@
+       "apiKeyEnvVar": "MOARK_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "Moark",
+-      "models": ["GLM-4.7", "MiniMax-M2.1"],
++      "models": [
++        "GLM-4.7",
++        "MiniMax-M2.1"
++      ],
+       "docUrl": "https://moark.com/docs/openapi/v1#tag/%E6%96%87%E6%9C%AC%E7%94%9F%E6%88%90",
+       "gateway": "models.dev"
+     },
+@@ -2558,7 +2627,11 @@
+       "apiKeyEnvVar": "MORPH_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "Morph",
+-      "models": ["auto", "morph-v3-fast", "morph-v3-large"],
++      "models": [
++        "auto",
++        "morph-v3-fast",
++        "morph-v3-large"
++      ],
+       "docUrl": "https://docs.morphllm.com/api-reference/introduction",
+       "gateway": "models.dev"
+     },
+@@ -2567,7 +2640,12 @@
+       "apiKeyEnvVar": "MINIMAX_API_KEY",
+       "apiKeyHeader": "Authorization",
+       "name": "MiniMax (minimax.io)",
+-      "models": ["MiniMax-M2", "MiniMax-M2.1", "MiniMax-M2.5", "MiniMax-M2.5-highspeed"],
++      "models": [
++        "MiniMax-M2",
++        "MiniMax-M2.1",
++        "MiniMax-M2.5",
++        "MiniMax-M2.5-highspeed"
++      ],
+       "docUrl": "https://platform.minimax.io/docs/guides/quickstart",
+       "gateway": "models.dev",
+       "npm": "@ai-sdk/anthropic"
+@@ -2709,7 +2787,12 @@
+     "perplexity": {
+       "apiKeyEnvVar": "PERPLEXITY_API_KEY",
+       "name": "Perplexity",
+-      "models": ["sonar", "sonar-deep-research", "sonar-pro", "sonar-reasoning-pro"],
++      "models": [
++        "sonar",
++        "sonar-deep-research",
++        "sonar-pro",
++        "sonar-reasoning-pro"
++      ],
+       "docUrl": "https://docs.perplexity.ai",
+       "gateway": "models.dev",
+       "npm": "@ai-sdk/perplexity"
+@@ -3112,7 +3195,12 @@
+     "cerebras": {
+       "apiKeyEnvVar": "CEREBRAS_API_KEY",
+       "name": "Cerebras",
+-      "models": ["gpt-oss-120b", "llama3.1-8b", "qwen-3-235b-a22b-instruct-2507", "zai-glm-4.7"],
++      "models": [
++        "gpt-oss-120b",
++        "llama3.1-8b",
++        "qwen-3-235b-a22b-instruct-2507",
++        "zai-glm-4.7"
++      ],
+       "docUrl": "https://inference-docs.cerebras.ai/models/overview",
+       "gateway": "models.dev",
+       "npm": "@ai-sdk/cerebras"
+@@ -3332,7 +3420,10 @@
+       "gateway": "models.dev"
+     },
+     "netlify": {
+-      "apiKeyEnvVar": ["NETLIFY_TOKEN", "NETLIFY_SITE_ID"],
++      "apiKeyEnvVar": [
++        "NETLIFY_TOKEN",
++        "NETLIFY_SITE_ID"
++      ],
+       "apiKeyHeader": "Authorization",
+       "name": "Netlify",
+       "gateway": "netlify",
+@@ -3399,6 +3490,17 @@
+         "openai/o4-mini"
+       ],
+       "docUrl": "https://docs.netlify.com/build/ai-gateway/overview/"
++    },
++    "cloudflare/google": {
++      "name": "Google",
++      "models": [
++        "gemini-2.5-flash",
++        "gemini-2.5-flash-lite",
++        "gemini-2.5-pro",
++        "gemini-3-flash-preview"
++      ],
++      "apiKeyEnvVar": "FP5cf5phxWjd6SPD1bKw8wsyt80yvE42DrDf7QlT",
++      "url": "https://gateway.ai.cloudflare.com/v1/774d1312a0ec20139920dc440cccbe75/kb/google-ai-studio/v1beta"
+     }
+   },
+   "models": {
+@@ -3684,7 +3786,9 @@
+       "perplexity/sonar",
+       "xai/grok-4-1-fast-non-reasoning"
+     ],
+-    "xiaomi": ["mimo-v2-flash"],
++    "xiaomi": [
++      "mimo-v2-flash"
++    ],
+     "synthetic": [
+       "hf:MiniMaxAI/MiniMax-M2",
+       "hf:MiniMaxAI/MiniMax-M2.1",
+@@ -3890,9 +3994,18 @@
+       "voxtral-small-24b-2507",
+       "whisper-large-v3"
+     ],
+-    "kuae-cloud-coding-plan": ["GLM-4.7"],
+-    "upstage": ["solar-mini", "solar-pro2", "solar-pro3"],
+-    "inception": ["mercury", "mercury-coder"],
++    "kuae-cloud-coding-plan": [
++      "GLM-4.7"
++    ],
++    "upstage": [
++      "solar-mini",
++      "solar-pro2",
++      "solar-pro3"
++    ],
++    "inception": [
++      "mercury",
++      "mercury-coder"
++    ],
+     "submodel": [
+       "Qwen/Qwen3-235B-A22B-Instruct-2507",
+       "Qwen/Qwen3-235B-A22B-Thinking-2507",
+@@ -3904,7 +4017,12 @@
+       "zai-org/GLM-4.5-Air",
+       "zai-org/GLM-4.5-FP8"
+     ],
+-    "minimax-cn-coding-plan": ["MiniMax-M2", "MiniMax-M2.1", "MiniMax-M2.5", "MiniMax-M2.5-highspeed"],
++    "minimax-cn-coding-plan": [
++      "MiniMax-M2",
++      "MiniMax-M2.1",
++      "MiniMax-M2.5",
++      "MiniMax-M2.5-highspeed"
++    ],
+     "novita-ai": [
+       "baichuan/baichuan-m2-32b",
+       "baidu/ernie-4.5-21B-a3b",
+@@ -4017,7 +4135,9 @@
+       "gpt-5.2",
+       "gpt-5.2-codex",
+       "gpt-5.3-codex",
++      "gpt-5.3-codex-spark",
+       "gpt-5.4",
++      "gpt-5.4-pro",
+       "kimi-k2.5",
+       "minimax-m2.1",
+       "minimax-m2.5",
+@@ -4139,8 +4259,16 @@
+       "xai/grok-4.1-fast-reasoning",
+       "xai/grok-code-fast-1"
+     ],
+-    "minimax-cn": ["MiniMax-M2", "MiniMax-M2.1", "MiniMax-M2.5", "MiniMax-M2.5-highspeed"],
+-    "bailing": ["Ling-1T", "Ring-1T"],
++    "minimax-cn": [
++      "MiniMax-M2",
++      "MiniMax-M2.1",
++      "MiniMax-M2.5",
++      "MiniMax-M2.5-highspeed"
++    ],
++    "bailing": [
++      "Ling-1T",
++      "Ring-1T"
++    ],
+     "alibaba": [
+       "qvq-max",
+       "qwen-flash",
+@@ -4293,8 +4421,16 @@
+       "qwen3-coder-480b-a35b-instruct",
+       "qwen3-max-2026-01-23"
+     ],
+-    "minimax-coding-plan": ["MiniMax-M2", "MiniMax-M2.1", "MiniMax-M2.5", "MiniMax-M2.5-highspeed"],
+-    "kimi-for-coding": ["k2p5", "kimi-k2-thinking"],
++    "minimax-coding-plan": [
++      "MiniMax-M2",
++      "MiniMax-M2.1",
++      "MiniMax-M2.5",
++      "MiniMax-M2.5-highspeed"
++    ],
++    "kimi-for-coding": [
++      "k2p5",
++      "kimi-k2-thinking"
++    ],
+     "mistral": [
+       "codestral-latest",
+       "devstral-2512",
+@@ -4395,7 +4531,11 @@
+       "accounts/fireworks/models/minimax-m2p1",
+       "accounts/fireworks/models/minimax-m2p5"
+     ],
+-    "stepfun": ["step-1-32k", "step-2-16k", "step-3.5-flash"],
++    "stepfun": [
++      "step-1-32k",
++      "step-2-16k",
++      "step-3.5-flash"
++    ],
+     "siliconflow": [
+       "ByteDance-Seed/Seed-OSS-36B-Instruct",
+       "MiniMaxAI/MiniMax-M2.1",
+@@ -4499,7 +4639,10 @@
+       "openai/gpt-oss-120b",
+       "zai-org/GLM-4.7"
+     ],
+-    "lucidquery": ["lucidnova-rf1-100b", "lucidquery-nexus-coder"],
++    "lucidquery": [
++      "lucidnova-rf1-100b",
++      "lucidquery-nexus-coder"
++    ],
+     "zhipuai-coding-plan": [
+       "glm-4.5",
+       "glm-4.5-air",
+@@ -4511,8 +4654,15 @@
+       "glm-4.7",
+       "glm-5"
+     ],
+-    "deepseek": ["deepseek-chat", "deepseek-reasoner"],
+-    "lmstudio": ["openai/gpt-oss-20b", "qwen/qwen3-30b-a3b-2507", "qwen/qwen3-coder-30b"],
++    "deepseek": [
++      "deepseek-chat",
++      "deepseek-reasoner"
++    ],
++    "lmstudio": [
++      "openai/gpt-oss-20b",
++      "qwen/qwen3-30b-a3b-2507",
++      "qwen/qwen3-coder-30b"
++    ],
+     "openrouter": [
+       "allenai/molmo-2-8b:free",
+       "anthropic/claude-3.5-haiku",
+@@ -4633,6 +4783,9 @@
+       "openai/gpt-5.2-chat",
+       "openai/gpt-5.2-codex",
+       "openai/gpt-5.2-pro",
++      "openai/gpt-5.3-codex",
++      "openai/gpt-5.4",
++      "openai/gpt-5.4-pro",
+       "openai/gpt-oss-120b",
+       "openai/gpt-oss-120b:exacto",
+       "openai/gpt-oss-120b:free",
+@@ -4832,7 +4985,13 @@
+       "kimi-k2-turbo-preview",
+       "kimi-k2.5"
+     ],
+-    "privatemode-ai": ["gemma-3-27b", "gpt-oss-120b", "qwen3-coder-30b-a3b", "qwen3-embedding-4b", "whisper-large-v3"],
++    "privatemode-ai": [
++      "gemma-3-27b",
++      "gpt-oss-120b",
++      "qwen3-coder-30b-a3b",
++      "qwen3-embedding-4b",
++      "whisper-large-v3"
++    ],
+     "google": [
+       "gemini-1.5-flash",
+       "gemini-1.5-flash-8b",
+@@ -4892,7 +5051,10 @@
+       "glm-4.7-flash",
+       "glm-5"
+     ],
+-    "nova": ["nova-2-lite-v1", "nova-2-pro-v1"],
++    "nova": [
++      "nova-2-lite-v1",
++      "nova-2-pro-v1"
++    ],
+     "zai-coding-plan": [
+       "glm-4.5",
+       "glm-4.5-air",
+@@ -4905,7 +5067,11 @@
+       "glm-4.7-flashx",
+       "glm-5"
+     ],
+-    "opencode-go": ["glm-5", "kimi-k2.5", "minimax-m2.5"],
++    "opencode-go": [
++      "glm-5",
++      "kimi-k2.5",
++      "minimax-m2.5"
++    ],
+     "firmware": [
+       "claude-haiku-4-5",
+       "claude-opus-4-5",
+@@ -5386,6 +5552,8 @@
+       "gpt-5.2-pro",
+       "gpt-5.3-codex",
+       "gpt-5.3-codex-spark",
++      "gpt-5.4",
++      "gpt-5.4-pro",
+       "o1",
+       "o1-mini",
+       "o1-preview",
+@@ -5400,9 +5568,21 @@
+       "text-embedding-3-small",
+       "text-embedding-ada-002"
+     ],
+-    "moark": ["GLM-4.7", "MiniMax-M2.1"],
+-    "morph": ["auto", "morph-v3-fast", "morph-v3-large"],
+-    "minimax": ["MiniMax-M2", "MiniMax-M2.1", "MiniMax-M2.5", "MiniMax-M2.5-highspeed"],
++    "moark": [
++      "GLM-4.7",
++      "MiniMax-M2.1"
++    ],
++    "morph": [
++      "auto",
++      "morph-v3-fast",
++      "morph-v3-large"
++    ],
++    "minimax": [
++      "MiniMax-M2",
++      "MiniMax-M2.1",
++      "MiniMax-M2.5",
++      "MiniMax-M2.5-highspeed"
++    ],
+     "vultr": [
+       "deepseek-r1-distill-llama-70b",
+       "deepseek-r1-distill-qwen-32b",
+@@ -5505,7 +5685,12 @@
+       "zai-org/GLM-4.7",
+       "zai-org/GLM-5"
+     ],
+-    "perplexity": ["sonar", "sonar-deep-research", "sonar-pro", "sonar-reasoning-pro"],
++    "perplexity": [
++      "sonar",
++      "sonar-deep-research",
++      "sonar-pro",
++      "sonar-reasoning-pro"
++    ],
+     "huggingface": [
+       "MiniMaxAI/MiniMax-M2.1",
+       "MiniMaxAI/MiniMax-M2.5",
+@@ -5862,7 +6047,12 @@
+       "zai-org/glm-5-original:thinking",
+       "zai-org/glm-5:thinking"
+     ],
+-    "cerebras": ["gpt-oss-120b", "llama3.1-8b", "qwen-3-235b-a22b-instruct-2507", "zai-glm-4.7"],
++    "cerebras": [
++      "gpt-oss-120b",
++      "llama3.1-8b",
++      "qwen-3-235b-a22b-instruct-2507",
++      "zai-glm-4.7"
++    ],
+     "cortecs": [
+       "claude-4-5-sonnet",
+       "claude-sonnet-4",
+@@ -6107,6 +6297,12 @@
+       "openai/o3",
+       "openai/o3-mini",
+       "openai/o4-mini"
++    ],
++    "cloudflare/google": [
++      "gemini-2.5-flash",
++      "gemini-2.5-flash-lite",
++      "gemini-2.5-pro",
++      "gemini-3-flash-preview"
+     ]
+   },
+   "version": "1.0.0"
